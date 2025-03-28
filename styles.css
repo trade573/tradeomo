@@ -8,7 +8,7 @@
 
 /* Body and Container */
 body {
-    background-color: #000000; /* Set background to black */
+    background-color: #000000;
     color: #fff;
     font-size: 16px;
     height: 100vh;
@@ -63,6 +63,7 @@ h1 {
     justify-content: space-between;
     align-items: center;
     transition: all 0.3s ease;
+    flex-wrap: wrap;
 }
 
 .live-amount-container:hover {
@@ -89,42 +90,6 @@ h2 {
     color: #ffcc00;
     font-weight: 600;
     margin-left: 10px;
-}
-
-/* Cards Section */
-.card-container {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 40px;
-    flex-wrap: wrap;
-}
-
-.card {
-    background-color: #2a2a2a;
-    color: white;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    width: 30%;
-    margin-bottom: 20px;
-    padding: 20px;
-    text-align: center;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.card:hover {
-    background-color: #333;
-    transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-}
-
-.card h3 {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
-}
-
-.card p {
-    font-size: 1.2rem;
 }
 
 /* Stock Graph Section */
@@ -154,15 +119,46 @@ h2 {
 }
 
 /* Media Queries for Responsiveness */
+@media screen and (max-width: 1024px) {
+    .container {
+        padding: 30px;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    .live-amount-container {
+        padding: 20px;
+    }
+
+    .amount {
+        font-size: 3rem;
+    }
+
+    .status {
+        font-size: 1.4rem;
+    }
+
+    .graph-section {
+        height: 350px;
+    }
+}
+
 @media screen and (max-width: 768px) {
     .container {
         padding: 20px;
         width: 90%;
     }
 
+    h1 {
+        font-size: 2rem;
+    }
+
     .live-amount-container {
         flex-direction: column;
         align-items: flex-start;
+        padding: 15px;
     }
 
     .amount {
@@ -175,7 +171,38 @@ h2 {
         margin-top: 10px;
     }
 
-    .card {
-        width: 100%;
+    .graph-section {
+        height: 300px;
+        padding: 10px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    .live-amount-container {
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+    }
+
+    .amount {
+        font-size: 2rem;
+    }
+
+    .status {
+        font-size: 1.2rem;
+        margin-left: 0;
+        margin-top: 10px;
+    }
+
+    .graph-section {
+        height: 250px;
     }
 }
