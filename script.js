@@ -5,20 +5,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial Stock Value
     let currentValue = 170000;
+    let previousValue = currentValue;
 
-    // Simulate stock fluctuations and update every 1 second
+    // Date-based target values for the stock
+    const targetValues = {
+        '2025-03-28': 210001,
+        '2025-03-29': 221675,
+        '2025-03-30': 242872,
+        '2025-03-31': 276876,
+        '2025-04-01': 301229
+    };
+
+    // Get current date
+    const currentDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    let targetDate = targetValues[currentDate] || 210001; // Default to 210001 if no target date
+
+    // Function to format numbers with commas
+    function formatNumber(number) {
+        return number.toLocaleString('en-IN');  // Format with commas (Indian format)
+    }
+
+    // Update live stock value gradually and fluctuate it
     function updateLiveValue() {
-        const change = (Math.random() * 2000 - 1000); // Random value between -1000 and 1000
-        currentValue += change;
+        // Add random fluctuation to the stock value (-100 to +100)
+        const fluctuation = Math.random() * 200 - 100; // Random fluctuation
+        currentValue += fluctuation;
 
-        // Update live stock value on the dashboard
-        liveValueElement.textContent = `₹${currentValue.toFixed(0)}`;
+        // Ensure stock value doesn't go below the initial value
+        if (currentValue < 170000) {
+            currentValue = 170000;
+        }
 
-        // Update the ticker status
-        if (currentValue > 170000) {
+        // Display live stock value with commas
+        liveValueElement.textContent = `₹${formatNumber(currentValue.toFixed(0))}`;
+
+        // Update the stock ticker status
+        if (currentValue > previousValue) {
             statusTickerElement.textContent = "Stock is rising!";
             statusTickerElement.style.color = "#66ff66";  // Green color for rising
-        } else if (currentValue < 170000) {
+        } else if (currentValue < previousValue) {
             statusTickerElement.textContent = "Stock is falling!";
             statusTickerElement.style.color = "#ff6666";  // Red color for falling
         } else {
@@ -26,23 +51,21 @@ document.addEventListener('DOMContentLoaded', () => {
             statusTickerElement.style.color = "#ffcc00";  // Yellow color for steady
         }
 
-        // Simulate the loader being hidden after the page is fully loaded
-        loader.style.display = 'none';
+        // Update the previous value to track stock movement
+        previousValue = currentValue;
     }
-
-    setInterval(updateLiveValue, 1000); // Update live stock value every 1 second
 
     // Setup Chart.js for stock price graph
     const ctx = document.getElementById('stockGraph').getContext('2d');
     const stockGraph = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: Array.from({ length: 60 }, (_, i) => i + 1),  // Create 60 labels for 1-minute intervals
+            labels: Array.from({ length: 60 }, (_, i) => i + 1), // Labels for the last 60 minutes
             datasets: [{
                 label: 'Stock Price (₹)',
-                data: Array(60).fill(currentValue),
-                backgroundColor: 'rgba(0, 255, 0, 0.3)',  // Light green
-                borderColor: 'rgba(0, 255, 0, 1)',  // Bright green
+                data: Array(60).fill(currentValue), // Initial data
+                backgroundColor: 'rgba(0, 255, 0, 0.3)', // Green for rising
+                borderColor: 'rgba(0, 255, 0, 1)', // Bright green for rising
                 borderWidth: 1,
                 fill: true,
             }],
@@ -73,11 +96,16 @@ document.addEventListener('DOMContentLoaded', () => {
         },
     });
 
-    // Update graph every minute with a new stock value
+    // Update the graph and stock value every second
     setInterval(() => {
-        const newPrice = currentValue + (Math.random() * 2000 - 1000);
-        stockGraph.data.datasets[0].data.shift();  // Remove the first value in the dataset
-        stockGraph.data.datasets[0].data.push(newPrice.toFixed(0));  // Add the new price to the dataset
+        updateLiveValue();
+
+        // Update the graph with the fluctuating stock value
+        stockGraph.data.datasets[0].data.push(currentValue.toFixed(0)); // Push the new value to the graph
+        stockGraph.data.datasets[0].data.shift(); // Remove the first value to maintain the graph length
         stockGraph.update();
-    }, 60000);  // Update the graph every minute (60000ms)
+    }, 1000); // Update every 1 second
+
+    // Simulate the loader being hidden after the page is fully loaded
+    loader.style.display = 'none';
 });
