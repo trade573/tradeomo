@@ -1,10 +1,10 @@
-document.addEventListener('DOMContentLoaded', () => { 
+document.addEventListener('DOMContentLoaded', () => {
     const loader = document.getElementById('loader');
     const liveValueElement = document.getElementById('liveValue');
     const statusTickerElement = document.getElementById('statusTicker');
 
-    // Starting stock value
-    let stockValue = parseFloat(localStorage.getItem('stockValue')) || 170000; // Get from localStorage or start from ₹1,70,000
+    // Fixed starting stock value for everyone (₹170,000)
+    let stockValue = 170000; 
 
     // Target values for the specific dates
     const targetValues = {
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
             labels: Array.from({ length: 60 }, (_, i) => i + 1),  // Labels for 60-minute intervals
             datasets: [{
                 label: 'Stock Price (₹)',
-                data: Array(60).fill(stockValue),  // Initialize graph with data
+                data: JSON.parse(localStorage.getItem('graphData')) || Array(60).fill(stockValue),  // Retrieve from localStorage if available
                 backgroundColor: 'rgba(0, 255, 0, 0.3)',  // Light green
                 borderColor: 'rgba(0, 255, 0, 1)',  // Bright green
                 borderWidth: 1,
@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,  // Ensure the graph resizes properly on mobile
             scales: {
                 x: {
                     beginAtZero: true,
@@ -86,7 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         liveValueElement.textContent = `₹${stockValue.toLocaleString('en-IN')}`;
         updateGraph(stockValue);
-        localStorage.setItem('stockValue', stockValue);
     }
 
     // Function to simulate stock fluctuation after April 1st, 2025
@@ -104,15 +104,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
             liveValueElement.textContent = `₹${fluctuatingStockValue.toLocaleString('en-IN')}`;
             updateGraph(fluctuatingStockValue);
-            localStorage.setItem('stockValue', fluctuatingStockValue);
         }, 1000); // Update every second
     }
 
     // Function to update the graph
     function updateGraph(newValue) {
+        // Update graph with the new stock value
         stockGraph.data.datasets[0].data.push(newValue);
         stockGraph.data.datasets[0].data.shift();  // Remove the oldest value
         stockGraph.update();
+
+        // Store updated graph data in localStorage
+        localStorage.setItem('graphData', JSON.stringify(stockGraph.data.datasets[0].data));
+    }
+
+    // Function to update status ticker
+    function updateStatusTicker() {
+        const fluctuation = (Math.random() * 200 - 100);  // Random fluctuation between -100 and +100
+        if (fluctuation > 0) {
+            statusTickerElement.textContent = "Stock is rising!";
+            statusTickerElement.style.color = "#66ff66";  // Green for rising
+        } else if (fluctuation < 0) {
+            statusTickerElement.textContent = "Stock is falling!";
+            statusTickerElement.style.color = "#ff6666";  // Red for falling
+        } else {
+            statusTickerElement.textContent = "Stock is steady.";
+            statusTickerElement.style.color = "#ffcc00";  // Yellow for steady
+        }
     }
 
     // Hide the loader after the page content is loaded
@@ -120,4 +138,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Start updating stock value after page load
     updateStockValue();
+
+    // Update the graph and ticker every second
+    setInterval(() => {
+        updateStockValue();
+        updateStatusTicker();
+    }, 1000);  // Update the stock value and status ticker every second
 });
