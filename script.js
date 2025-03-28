@@ -1,11 +1,10 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => { 
     const loader = document.getElementById('loader');
     const liveValueElement = document.getElementById('liveValue');
     const statusTickerElement = document.getElementById('statusTicker');
-    const stockGraphElement = document.getElementById('stockGraph');
 
     // Starting stock value
-    let stockValue = parseFloat(localStorage.getItem('stockValue')) || 170000;
+    let stockValue = parseFloat(localStorage.getItem('stockValue')) || 170000; // Get from localStorage or start from ₹1,70,000
 
     // Target values for the specific dates
     const targetValues = {
@@ -20,14 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentDate = new Date();
     const todayKey = currentDate.toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
 
-    // Set target value for today
+    // Set initial stock value for today
     let currentTarget = targetValues[todayKey] || stockValue;
 
-    // Display initial stock value on the page
-    liveValueElement.textContent = `₹${stockValue.toLocaleString('en-IN')}`;
-
-    // Setup Chart.js for stock value graph
-    const ctx = stockGraphElement.getContext('2d');
+    // Setup Chart.js for real-time graph updates
+    const ctx = document.getElementById('stockGraph').getContext('2d');
     const stockGraph = new Chart(ctx, {
         type: 'line',
         data: {
@@ -45,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
             responsive: true,
             scales: {
                 x: {
+                    beginAtZero: true,
                     title: {
                         display: true,
                         text: 'Time (minutes)',
@@ -66,107 +63,61 @@ document.addEventListener('DOMContentLoaded', () => {
         },
     });
 
-    // Function to update stock value and graph
+    // Function to update stock value and fluctuations
     function updateStockValue() {
-        // Get current date
-        const currentDate = new Date();
-        const targetDate = new Date('2025-04-01T00:00:00');
-
-        // Before April 1, fluctuate towards target
-        if (currentDate < targetDate) {
-            fluctuateBeforeApril1();
-        }
-        // After April 1, perform random fluctuations
-        else {
-            fluctuateAfterApril1();
-        }
-    }
-
-    // Function to fluctuate the stock value before April 1
-    function fluctuateBeforeApril1() {
-        let fluctuationMagnitude = (Math.random() * 0.1 - 0.05);  // ±5% fluctuation
-        let previousStockValue = stockValue;
-        stockValue += fluctuationMagnitude * stockValue;
-
-        // Gradually move towards the target value at the end of the day
-        let targetTime = new Date('2025-03-31T23:59:59');
-        let timeRemaining = targetTime - new Date();
-        if (timeRemaining > 0) {
-            let increment = (currentTarget - stockValue) / timeRemaining;
-            stockValue += increment;
-        }
-
-        // Update the status ticker based on the fluctuation
-        updateStatusTicker(stockValue, previousStockValue);
-
-        // Display the stock value
-        liveValueElement.textContent = `₹${stockValue.toLocaleString('en-IN')}`;
-
-        // Update the graph with the fluctuating value
-        stockGraph.data.datasets[0].data.push(stockValue);
-        stockGraph.data.datasets[0].data.shift();  // Remove the oldest value
-        stockGraph.update();
-
-        // Save updated graph data in localStorage
-        localStorage.setItem('graphData', JSON.stringify(stockGraph.data.datasets[0].data));
-    }
-
-    // Function to fluctuate the stock value after April 1 (random fluctuations like a real market)
-    function fluctuateAfterApril1() {
-        let randomFluctuation = Math.random() * 200 - 100; // Random fluctuation between -100 and 100
-        let previousStockValue = stockValue;
-        stockValue += randomFluctuation;
-
-        // Prevent the value from becoming negative
-        if (stockValue < 0) {
-            stockValue = 0;
-        }
-
-        // Update the status ticker based on the fluctuation
-        updateStatusTicker(stockValue, previousStockValue);
-
-        // Display the fluctuating stock value
-        liveValueElement.textContent = `₹${stockValue.toLocaleString('en-IN')}`;
-
-        // Update the graph with the fluctuating value
-        stockGraph.data.datasets[0].data.push(stockValue);
-        stockGraph.data.datasets[0].data.shift();  // Remove the oldest value
-        stockGraph.update();
-
-        // Save updated graph data in localStorage
-        localStorage.setItem('graphData', JSON.stringify(stockGraph.data.datasets[0].data));
-    }
-
-    // Function to update the status ticker based on stock fluctuation direction
-    function updateStatusTicker(currentValue, previousValue) {
-        if (currentValue > previousValue) {
-            statusTickerElement.textContent = "Stock is rising!";
-            statusTickerElement.style.color = "#66ff66";  // Green for rising
-        } else if (currentValue < previousValue) {
-            statusTickerElement.textContent = "Stock is falling!";
-            statusTickerElement.style.color = "#ff6666";  // Red for falling
+        // Get current date and check if it's before or after the target date
+        const today = new Date();
+        if (today < new Date('2025-04-01')) {
+            // Update stock value before April 1st
+            fluctuateStockValueBeforeApril();
         } else {
-            statusTickerElement.textContent = "Stock is steady.";
-            statusTickerElement.style.color = "#ffcc00";  // Yellow for steady
+            // Fluctuate after April 1st like real stock behavior
+            startFluctuation();
         }
     }
 
-    // Ensure the graph is the same for all users by loading shared graph data
-    let sharedGraphData = JSON.parse(localStorage.getItem('graphData'));
-    if (sharedGraphData) {
-        stockGraph.data.datasets[0].data = sharedGraphData;
-        stockGraph.update();
-    } else {
-        // If no shared data exists, initialize with default data
-        let defaultGraphData = Array(60).fill(stockValue);
-        localStorage.setItem('graphData', JSON.stringify(defaultGraphData));
-        stockGraph.data.datasets[0].data = defaultGraphData;
+    // Function to simulate fluctuation before April 1st, 2025
+    function fluctuateStockValueBeforeApril() {
+        const fluctuationMagnitude = (Math.random() * 0.1 - 0.05);  // ±5% random fluctuation magnitude
+        stockValue += stockValue * fluctuationMagnitude;
+
+        // Ensure stock value doesn't go negative
+        if (stockValue < 0) stockValue = 0;
+
+        liveValueElement.textContent = `₹${stockValue.toLocaleString('en-IN')}`;
+        updateGraph(stockValue);
+        localStorage.setItem('stockValue', stockValue);
+    }
+
+    // Function to simulate stock fluctuation after April 1st, 2025
+    function startFluctuation() {
+        let fluctuatingStockValue = stockValue;
+
+        // Fluctuate stock value every second
+        setInterval(() => {
+            const randomFluctuation = (Math.random() * 0.1 - 0.05);  // ±5% fluctuation (both up and down)
+            fluctuatingStockValue += fluctuatingStockValue * randomFluctuation;
+
+            if (fluctuatingStockValue < 0) {
+                fluctuatingStockValue = 0; // Prevent negative stock values
+            }
+
+            liveValueElement.textContent = `₹${fluctuatingStockValue.toLocaleString('en-IN')}`;
+            updateGraph(fluctuatingStockValue);
+            localStorage.setItem('stockValue', fluctuatingStockValue);
+        }, 1000); // Update every second
+    }
+
+    // Function to update the graph
+    function updateGraph(newValue) {
+        stockGraph.data.datasets[0].data.push(newValue);
+        stockGraph.data.datasets[0].data.shift();  // Remove the oldest value
         stockGraph.update();
     }
 
-    // Run the update every second
-    setInterval(updateStockValue, 1000);
-
-    // Hide loader after the page content is fully loaded
+    // Hide the loader after the page content is loaded
     loader.style.display = 'none';
+
+    // Start updating stock value after page load
+    updateStockValue();
 });
