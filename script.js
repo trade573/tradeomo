@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,  // Ensure the graph resizes
             scales: {
                 x: {
                     beginAtZero: true,
